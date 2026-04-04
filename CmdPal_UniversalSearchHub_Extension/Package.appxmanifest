@@ -10,10 +10,9 @@
 
   <Identity
     Name="CmdPal-UniversalSearchHub-Extension"
-    Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+    Publisher="CN=CmdPal Universal Search Hub CI"
     Version="0.0.1.0" />
-  <!-- When you're ready to publish your extension, you'll need to change the
-       Publisher= to match your own identity -->
+  <!-- Publisher must match the Subject of the PFX used to sign the MSIX (see docs/Signing.md). -->
 
   <Properties>
     <DisplayName>CmdPal - Universal Search Hub</DisplayName>

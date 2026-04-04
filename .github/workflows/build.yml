@@ -1,8 +1,7 @@
-# Builds the CmdPal extension on GitHub-hosted Windows runners (no local VS/.NET SDK required on your PC).
+# Builds and optionally signs the MSIX. See docs/Signing.md for secrets + trust cert.
 #
-# The MSIX artifact is unsigned — fine for CI and manual sideload testing with Developer Mode.
-# To ship a trusted package, follow https://learn.microsoft.com/windows/apps/package-and-deploy/ci-for-winui3
-# (PFX in repo secrets + PackageCertificateKeyFile / signing step).
+# Without CMDPAL_PFX_BASE64: unsigned MSIX (needs Developer Mode or local signing to install).
+# With secrets: signed MSIX + artifact "install-trust-certificate" (.cer) for Trusted People.
 name: Build
 
 on:
@@ -15,6 +14,7 @@ on:
 env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
+
 jobs:
   build:
     runs-on: windows-latest
@@ -36,21 +36,77 @@ jobs:
       - name: Build (Release, x64)
         run: dotnet build CmdPal_UniversalSearchHub_Extension.sln -c Release --no-restore /p:Platform=x64
 
-      - name: Publish MSIX (unsigned)
+      - name: Write signing PFX
+        id: pfx
+        if: ${{ secrets.CMDPAL_PFX_BASE64 != '' }}
+        env:
+          PFX_B64: ${{ secrets.CMDPAL_PFX_BASE64 }}
+        shell: pwsh
         run: |
-          dotnet publish CmdPal_UniversalSearchHub_Extension\CmdPal_UniversalSearchHub_Extension.csproj `
-            -c Release `
-            -r win-x64 `
-            --no-restore `
-            /p:Platform=x64 `
-            /p:GenerateAppxPackageOnBuild=true `
-            /p:AppxPackageSigningEnabled=false `
-            /p:UapAppxPackageBuildMode=SideloadOnly `
-            /p:AppxBundle=Never
+          $path = Join-Path $env:GITHUB_WORKSPACE 'CmdPal_CI.pfx'
+          [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String($env:PFX_B64))
+          "pfx_path=$path" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Publish MSIX
+        env:
+          PFX_PASSWORD: ${{ secrets.CMDPAL_PFX_PASSWORD }}
+        shell: pwsh
+        run: |
+          $proj = 'CmdPal_UniversalSearchHub_Extension\CmdPal_UniversalSearchHub_Extension.csproj'
+          $pfx = Join-Path $env:GITHUB_WORKSPACE 'CmdPal_CI.pfx'
+          $args = @(
+            'publish', $proj,
+            '-c', 'Release',
+            '-r', 'win-x64',
+            '--no-restore',
+            '/p:Platform=x64',
+            '/p:GenerateAppxPackageOnBuild=true',
+            '/p:UapAppxPackageBuildMode=SideloadOnly',
+            '/p:AppxBundle=Never'
+          )
+          if (Test-Path -LiteralPath $pfx) {
+            $args += '/p:AppxPackageSigningEnabled=true'
+            $args += "/p:PackageCertificateKeyFile=$pfx"
+            if ($env:PFX_PASSWORD -and $env:PFX_PASSWORD.Trim().Length -gt 0) {
+              $args += "/p:PackageCertificatePassword=$env:PFX_PASSWORD"
+            }
+          } else {
+            $args += '/p:AppxPackageSigningEnabled=false'
+          }
+          dotnet @args
+
+      - name: Export public CER (for Trusted People)
+        if: ${{ secrets.CMDPAL_PFX_BASE64 != '' }}
+        env:
+          PFX_PASSWORD: ${{ secrets.CMDPAL_PFX_PASSWORD }}
+        shell: pwsh
+        run: |
+          $pfx = Join-Path $env:GITHUB_WORKSPACE 'CmdPal_CI.pfx'
+          $cerOut = Join-Path $env:GITHUB_WORKSPACE 'CmdPal_CI_Public.cer'
+          if ($env:PFX_PASSWORD -and $env:PFX_PASSWORD.Trim().Length -gt 0) {
+            $sec = ConvertTo-SecureString $env:PFX_PASSWORD -AsPlainText -Force
+            $c = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($pfx, $sec, 'Exportable')
+          } else {
+            $c = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($pfx, [string]::Empty, 'Exportable')
+          }
+          [IO.File]::WriteAllBytes($cerOut, $c.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+
+      - name: Remove PFX from workspace
+        if: ${{ secrets.CMDPAL_PFX_BASE64 != '' }}
+        shell: pwsh
+        run: Remove-Item -LiteralPath (Join-Path $env:GITHUB_WORKSPACE 'CmdPal_CI.pfx') -Force -ErrorAction SilentlyContinue
 
       - name: Upload MSIX artifact
         uses: actions/upload-artifact@v6
         with:
-          name: msix-win-x64-unsigned
+          name: msix-win-x64
           path: "**/AppPackages/**/*.msix"
+          if-no-files-found: warn
+
+      - name: Upload trust certificate
+        if: ${{ secrets.CMDPAL_PFX_BASE64 != '' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: install-trust-certificate
+          path: CmdPal_CI_Public.cer
           if-no-files-found: warn
