@@ -50,9 +50,11 @@ jobs:
           $pfx = Join-Path $root 'CmdPal_CI.pfx'
           $cerOut = Join-Path $root 'CmdPal_CI_Public.cer'
 
-          $signed = -not [string]::IsNullOrWhiteSpace($env:PFX_B64)
+          # Strip whitespace/newlines from secret (common paste mistake breaks Base64).
+          $b64 = if ($env:PFX_B64) { ($env:PFX_B64 -replace '\s', '') } else { '' }
+          $signed = $b64.Length -gt 0
           if ($signed) {
-            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:PFX_B64))
+            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($b64))
           }
 
           $proj = 'CmdPal_UniversalSearchHub_Extension\CmdPal_UniversalSearchHub_Extension.csproj'
@@ -68,7 +70,8 @@ jobs:
           )
           if ($signed) {
             $args += '/p:AppxPackageSigningEnabled=true'
-            $args += "/p:PackageCertificateKeyFile=$pfx"
+            # Quote path for MSBuild (handles edge cases).
+            $args += "/p:PackageCertificateKeyFile=`"$pfx`""
             if ($env:PFX_PASSWORD -and $env:PFX_PASSWORD.Trim().Length -gt 0) {
               $args += "/p:PackageCertificatePassword=$env:PFX_PASSWORD"
             }
@@ -76,6 +79,20 @@ jobs:
             $args += '/p:AppxPackageSigningEnabled=false'
           }
           dotnet @args
+
+          if ($signed) {
+            $msix = Get-ChildItem -Path $root -Recurse -Filter *.msix -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -match 'AppPackages' } |
+              Select-Object -First 1
+            if (-not $msix) { throw 'Signed build: no .msix found under AppPackages.' }
+            $signtool = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin' -Recurse -Filter 'signtool.exe' -ErrorAction SilentlyContinue |
+              Sort-Object FullName -Descending |
+              Select-Object -First 1
+            if (-not $signtool) { throw 'signtool.exe not found; cannot verify MSIX signature.' }
+            Write-Host "Verifying signature: $($msix.FullName)"
+            & $signtool.FullName verify /pa /v "$($msix.FullName)"
+            if ($LASTEXITCODE -ne 0) { throw "MSIX is not signed or signature invalid (exit $LASTEXITCODE). Check PFX matches manifest Publisher." }
+          }
 
           if ($signed) {
             if ($env:PFX_PASSWORD -and $env:PFX_PASSWORD.Trim().Length -gt 0) {
@@ -87,8 +104,19 @@ jobs:
             [IO.File]::WriteAllBytes($cerOut, $c.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
             Remove-Item -LiteralPath $pfx -Force
             Add-Content -Path $env:GITHUB_OUTPUT -Value "has_cer=true"
+            @'
+### MSIX signing
+**Signed** with `CMDPAL_PFX_BASE64`. Download **`install-trust-certificate`**, install the `.cer` to **Local Machine → Trusted People**, then install the MSIX from **`msix-win-x64`**.
+'@ | Add-Content -Path $env:GITHUB_STEP_SUMMARY
           } else {
             Add-Content -Path $env:GITHUB_OUTPUT -Value "has_cer=false"
+            $sum = @'
+### MSIX signing
+**Unsigned build** — repository secret `CMDPAL_PFX_BASE64` is empty, so this MSIX is **not** signed. Windows will show *Publisher: Unknown* and block install unless Developer Mode is on.
+
+Add the PFX secret (see `docs/Signing.md`) and download both **`msix-win-x64`** and **`install-trust-certificate`** from the same run.
+'@
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $sum
           }
 
       - name: Upload MSIX artifact

@@ -2,6 +2,22 @@
 
 Windows will not install an MSIX whose publisher is not trusted. There is **no supported command-line flag** to bypass that without **Developer Mode** or **trusting the signing certificate**.
 
+## Troubleshooting: "Publisher: Unknown" / `0x800B010A`
+
+1. **Open the same workflow run** you downloaded the MSIX from. Under **Artifacts**:
+   - If you **only** see **`msix-win-x64`** and **not** **`install-trust-certificate`**, the build was **unsigned**. You never set **`CMDPAL_PFX_BASE64`** (or it was empty). Add the secret and run again.
+2. If you **do** see **`install-trust-certificate`**:
+   - Install the **`.cer`** from that artifact first: **Local Machine** → **Trusted People** (you need an admin prompt). Use the **`.cer` from the same run** as the `.msix`.
+   - If **Install** stays blocked, try **Trusted Root Certification Authorities** instead (acceptable for your own test cert only).
+3. **Base64 secret** must be **one continuous line**. If you pasted with line breaks, fix the secret or regenerate; the workflow strips whitespace, but a bad paste can still corrupt the PFX.
+4. On your PC you can check whether the file is signed:
+
+```powershell
+Get-AuthenticodeSignature -FilePath "C:\path\to\your.msix"
+```
+
+`Status : Valid` (or similar) means signed; `NotSigned` means the GitHub build did not sign it.
+
 This repo is set up so CI can **sign** the package using a **PFX** stored in GitHub Secrets. You install the matching **public certificate (.cer)** once on your PC (Trusted People), then normal double-click install works.
 
 ## 1. Create a PFX on your PC (one time)
