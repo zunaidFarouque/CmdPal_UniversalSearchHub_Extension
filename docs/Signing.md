@@ -61,6 +61,33 @@ After a successful **Build** workflow:
 
 If `CMDPAL_PFX_BASE64` is not set, the workflow still builds an **unsigned** MSIX (install requires Developer Mode or local signing). Fork PRs do not receive your secrets.
 
+## Download latest CI build locally (gitignored)
+
+After a **successful** Build workflow on `main` (see the repository **Actions** tab), you can pull artifacts into **`artifacts/run-<runId>/`** (ignored by git) using the GitHub CLI.
+
+**One-time setup**
+
+1. Install [GitHub CLI](https://cli.github.com/) (`gh`).
+2. Authenticate: `gh auth login` (needs `repo` scope for private repositories).
+3. Non-interactive / CI on your machine: set environment variable **`GH_TOKEN`** or **`GITHUB_TOKEN`** to a PAT with `actions:read` (and `repo` if private).
+
+**Download**
+
+From the repository root:
+
+```powershell
+pwsh ./scripts/Download-LatestBuild.ps1
+```
+
+Optional parameters: `-Branch main`, `-Workflow build.yml`, `-Owner yourUser`, `-Repo yourRepo` (owner/repo default from `git remote origin`).
+
+**Layout** (under `artifacts/run-<runId>/`)
+
+- `msix-win-x64/` — artifact contents (often a `.zip` you extract to get the `.msix`).
+- `install-trust-certificate/` — only when CI signed the package; contains `CmdPal_CI_Public.cer`.
+
+Exact names match the workflow artifact names; GitHub may wrap files in a zip per artifact.
+
 ## Store / real distribution
 
 Replace the publisher and use a real code-signing certificate from a public CA when you publish to the Microsoft Store or ship broadly.

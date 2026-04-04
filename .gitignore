@@ -1,3 +1,6 @@
 # Local signing outputs (never commit)
 CmdPal_CI_Signing.pfx
 CmdPal_CI_Public.cer
+
+# Latest CI downloads (local only; see scripts/Download-LatestBuild.ps1)
+artifacts/
