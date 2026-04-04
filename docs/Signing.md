@@ -67,9 +67,7 @@ After a **successful** Build workflow on `main` (see the repository **Actions** 
 
 **One-time setup**
 
-1. Install [GitHub CLI](https://cli.github.com/) (`gh`).
-2. Authenticate: `gh auth login` (needs `repo` scope for private repositories).
-3. Non-interactive / CI on your machine: set environment variable **`GH_TOKEN`** or **`GITHUB_TOKEN`** to a PAT with `actions:read` (and `repo` if private).
+1. **Either** install [GitHub CLI](https://cli.github.com/) and run `gh auth login` **or** set **`GH_TOKEN`** (or **`GITHUB_TOKEN`**) to a PAT with **`actions:read`** and **`repo`** (private repos). The script uses the REST API and does not require `gh` if a token is set.
 
 **Download**
 
