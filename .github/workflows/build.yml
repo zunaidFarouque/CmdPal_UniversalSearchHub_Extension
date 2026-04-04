@@ -104,19 +104,12 @@ jobs:
             [IO.File]::WriteAllBytes($cerOut, $c.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
             Remove-Item -LiteralPath $pfx -Force
             Add-Content -Path $env:GITHUB_OUTPUT -Value "has_cer=true"
-            @'
-### MSIX signing
-**Signed** with `CMDPAL_PFX_BASE64`. Download **`install-trust-certificate`**, install the `.cer` to **Local Machine → Trusted People**, then install the MSIX from **`msix-win-x64`**.
-'@ | Add-Content -Path $env:GITHUB_STEP_SUMMARY
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### MSIX signing"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Signed using CMDPAL_PFX_BASE64. Download artifact install-trust-certificate, import the CER to Local Machine Trusted People, then install the MSIX from msix-win-x64."
           } else {
             Add-Content -Path $env:GITHUB_OUTPUT -Value "has_cer=false"
-            $sum = @'
-### MSIX signing
-**Unsigned build** — repository secret `CMDPAL_PFX_BASE64` is empty, so this MSIX is **not** signed. Windows will show *Publisher: Unknown* and block install unless Developer Mode is on.
-
-Add the PFX secret (see `docs/Signing.md`) and download both **`msix-win-x64`** and **`install-trust-certificate`** from the same run.
-'@
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $sum
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "### MSIX signing"
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "Unsigned build (CMDPAL_PFX_BASE64 not set). Windows shows an unknown publisher unless you use Developer Mode. See docs/Signing.md."
           }
 
       - name: Upload MSIX artifact
