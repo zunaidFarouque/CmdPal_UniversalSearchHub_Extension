@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using CmdPal_UniversalSearchHub_Extension.Commands;
 using CmdPal_UniversalSearchHub_Extension.Models;
 using CmdPal_UniversalSearchHub_Extension.Services;
@@ -109,5 +110,5 @@ internal sealed partial class CmdPal_UniversalSearchHub_ExtensionPage : DynamicL
     }
 
     private static string BuildSearchUrl(SearchProvider provider, string rawQuery) =>
-        string.Format(provider.BaseUrl, Uri.EscapeDataString(rawQuery));
+        string.Format(CultureInfo.InvariantCulture, provider.BaseUrl, Uri.EscapeDataString(rawQuery));
 }

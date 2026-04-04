@@ -13,13 +13,6 @@ internal sealed class ProviderService
     private const string DataFolderName = "CmdPal_UniversalSearchHub";
     private const string ProvidersFileName = "providers.json";
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true,
-        WriteIndented = true,
-    };
-
     private static readonly SearchProvider[] DefaultProviders =
     [
         new()
@@ -59,7 +52,7 @@ internal sealed class ProviderService
         string json = File.ReadAllText(_providersPath);
         try
         {
-            List<SearchProvider>? list = JsonSerializer.Deserialize<List<SearchProvider>>(json, JsonOptions);
+            List<SearchProvider>? list = JsonSerializer.Deserialize(json, ProviderJsonContext.Default.ListSearchProvider);
             if (list is { Count: > 0 })
             {
                 return list;
@@ -86,7 +79,7 @@ internal sealed class ProviderService
             return;
         }
 
-        string json = JsonSerializer.Serialize(DefaultProviders, JsonOptions);
+        string json = JsonSerializer.Serialize(DefaultProviders, ProviderJsonContext.Default.SearchProviderArray);
         File.WriteAllText(_providersPath, json);
     }
 }

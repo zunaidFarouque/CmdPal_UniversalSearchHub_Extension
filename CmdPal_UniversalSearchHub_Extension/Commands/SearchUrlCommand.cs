@@ -7,7 +7,7 @@ using Microsoft.CommandPalette.Extensions.Toolkit;
 
 namespace CmdPal_UniversalSearchHub_Extension.Commands;
 
-internal sealed class SearchUrlCommand : InvokableCommand
+internal sealed partial class SearchUrlCommand : InvokableCommand
 {
     private readonly string _url;
 
