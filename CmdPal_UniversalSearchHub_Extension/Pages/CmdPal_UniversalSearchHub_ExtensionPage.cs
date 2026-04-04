@@ -2,6 +2,7 @@
 // The Microsoft Corporation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using CmdPal_UniversalSearchHub_Extension.Commands;
 using CmdPal_UniversalSearchHub_Extension.Models;
 using CmdPal_UniversalSearchHub_Extension.Services;
