@@ -15,6 +15,6 @@ namespace CmdPal_UniversalSearchHub_Extension.Services;
 [JsonSerializable(typeof(SearchProvider))]
 [JsonSerializable(typeof(List<SearchProvider>))]
 [JsonSerializable(typeof(SearchProvider[]))]
-internal partial class ProviderJsonContext : JsonSerializerContext
+internal sealed partial class ProviderJsonContext : JsonSerializerContext
 {
 }
