@@ -15,8 +15,9 @@ namespace CmdPal_UniversalSearchHub_Extension;
 internal sealed partial class CmdPal_UniversalSearchHub_ExtensionPage : DynamicListPage
 {
     private static readonly IconInfo SearchIcon = new("\uE721");
-
-    private readonly ProviderService _providers = new();
+    private static readonly Lock SubscribeGate = new();
+    private static bool _providersChangeSubscribed;
+    private static WeakReference<CmdPal_UniversalSearchHub_ExtensionPage>? _activeSearchPage;
 
     public CmdPal_UniversalSearchHub_ExtensionPage()
     {
@@ -24,13 +25,33 @@ internal sealed partial class CmdPal_UniversalSearchHub_ExtensionPage : DynamicL
         Title = "CmdPal - Universal Search Hub";
         Name = "Open";
         PlaceholderText = "Type g query, yt query, gh query, or pick a provider…";
+        lock (SubscribeGate)
+        {
+            _activeSearchPage = new WeakReference<CmdPal_UniversalSearchHub_ExtensionPage>(this);
+            if (!_providersChangeSubscribed)
+            {
+                ProviderService.ProvidersChanged += OnProvidersChangedStatic;
+                _providersChangeSubscribed = true;
+            }
+        }
+    }
+
+    private static void OnProvidersChangedStatic(object? sender, EventArgs e)
+    {
+        lock (SubscribeGate)
+        {
+            if (_activeSearchPage?.TryGetTarget(out CmdPal_UniversalSearchHub_ExtensionPage? page) == true)
+            {
+                page.RaiseItemsChanged();
+            }
+        }
     }
 
     public override void UpdateSearchText(string oldSearch, string newSearch) => RaiseItemsChanged();
 
     public override IListItem[] GetItems()
     {
-        IReadOnlyList<SearchProvider> providers = _providers.LoadProviders();
+        IReadOnlyList<SearchProvider> providers = ProviderService.Instance.LoadEnabledProviders();
         string text = SearchText.Trim();
 
         if (TryGetPrefixQuery(text, providers, out SearchProvider? matched, out string? query))
@@ -55,7 +76,7 @@ internal sealed partial class CmdPal_UniversalSearchHub_ExtensionPage : DynamicL
                 items.Add(new ListItem(new NoOpCommand())
                 {
                     Title = p.Name,
-                    Subtitle = $"Search on {p.Name}",
+                    Subtitle = $"Search on {p.Name} (type a query or use prefix + space)",
                     Icon = SearchIcon,
                 });
             }

@@ -18,6 +18,6 @@ internal sealed partial class SearchUrlCommand : InvokableCommand
     public override CommandResult Invoke()
     {
         Process.Start(new ProcessStartInfo(_url) { UseShellExecute = true });
-        return CommandResult.Hide();
+        return CommandResult.Dismiss();
     }
 }

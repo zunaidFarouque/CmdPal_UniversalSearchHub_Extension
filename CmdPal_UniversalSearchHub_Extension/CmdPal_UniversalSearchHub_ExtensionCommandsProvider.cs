@@ -2,6 +2,7 @@
 // The Microsoft Corporation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using CmdPal_UniversalSearchHub_Extension.Pages;
 using Microsoft.CommandPalette.Extensions;
 using Microsoft.CommandPalette.Extensions.Toolkit;
 
@@ -17,6 +18,11 @@ public partial class CmdPal_UniversalSearchHub_ExtensionCommandsProvider : Comma
         Icon = IconHelpers.FromRelativePath("Assets\\StoreLogo.png");
         _commands = [
             new CommandItem(new CmdPal_UniversalSearchHub_ExtensionPage()) { Title = DisplayName },
+            new CommandItem(new ProviderSettingsPage())
+            {
+                Title = "Configure search providers",
+                Subtitle = "Enable, add, or remove engines",
+            },
         ];
     }
 

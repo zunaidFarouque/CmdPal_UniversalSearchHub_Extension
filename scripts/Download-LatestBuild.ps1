@@ -62,10 +62,10 @@ $fullRepo = "$Owner/$Repo"
 Write-Host "Repository: $fullRepo (branch $Branch, workflow $Workflow)"
 
 $headers = @{
-    Authorization          = "Bearer $token"
-    Accept                 = 'application/vnd.github+json'
-    'X-GitHub-Api-Version' = '2022-11-28'
-    User-Agent             = 'CmdPal-Download-LatestBuild'
+    Authorization            = "Bearer $token"
+    Accept                   = 'application/vnd.github+json'
+    'X-GitHub-Api-Version'   = '2022-11-28'
+    'User-Agent'             = 'CmdPal-Download-LatestBuild'
 }
 
 $runsUri = "https://api.github.com/repos/$Owner/$Repo/actions/workflows/$Workflow/runs?branch=$Branch&status=success&per_page=1"
