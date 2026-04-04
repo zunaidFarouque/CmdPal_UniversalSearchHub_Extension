@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "CmdPal_UniversalSearchHub_Extension (Package)": {
+      "commandName": "MsixPackage",
+      "doNotLaunchApp": true
+    },
+    "CmdPal_UniversalSearchHub_Extension (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
