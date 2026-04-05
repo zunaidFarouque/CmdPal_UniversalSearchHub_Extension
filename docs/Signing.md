@@ -29,7 +29,7 @@ cd <path-to-this-repo>
 .\scripts\New-CmdPalSigningCertificate.ps1
 ```
 
-The script creates a cert with Subject **`CN=CmdPal Universal Search Hub CI`** (must match `Package.appxmanifest`), exports:
+The script creates a cert with Subject **`CN=Zunaid Farouque`** (must match `Package.appxmanifest`), exports:
 
 - `CmdPal_CI_Signing.pfx` — **secret**, for GitHub only  
 - `CmdPal_CI_Public.cer` — **public**, you will trust this on your PC
@@ -89,3 +89,12 @@ Exact names match the workflow artifact names; GitHub may wrap files in a zip pe
 ## Store / real distribution
 
 Replace the publisher and use a real code-signing certificate from a public CA when you publish to the Microsoft Store or ship broadly.
+
+## Local reinstall after code changes
+
+For an AI-oriented checklist, HRESULT table, and scripts:
+
+- **`scripts/Publish-AndInstall-Local.ps1`** — build + trust + install on your PC.
+- **`scripts/Install-LocalSignedMsix.ps1`** — install only when an `.msix` already exists (same trust/sign flow; run from repo root).
+
+See **`docs/Install-After-Code-Changes.md`**. Cursor/agents also load **`AGENTS.md`** (repo root) and **`.cursor/rules/msix-local-install.mdc`** for the same commands.

@@ -1,6 +1,82 @@
-# Local signing outputs (never commit)
-CmdPal_CI_Signing.pfx
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+ARM64/
+arm64/
+bld/
+[Bb]uild/
+[Ll]og/
+[Ll]ogs/
+
+# MSIX / packaging (local publish; CI uploads artifacts separately)
+**/AppPackages/
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+*.appxsym
+*.appxupload
+
+# Visual Studio / MSBuild
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.userprefs
+*.pidb
+*.svclog
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+*.psess
+*.vsp
+*.vspx
+*.sap
+*.binlog
+*.plg
+*.opt
+*.opensdf
+*.sdf
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfxproj
+*.publishsettings
+
+# Test / coverage
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+
+# JetBrains / Rider
+.idea/
+*.sln.iml
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Secrets and local signing (never commit)
+*.pfx
+*.snk
 CmdPal_CI_Public.cer
 
-# Latest CI downloads (local only; see scripts/Download-LatestBuild.ps1)
+# CI artifact downloads (see scripts/Download-LatestBuild.ps1)
 artifacts/
+
+# Cursor / editor
+.cursor/

@@ -9,7 +9,7 @@ namespace CmdPal_UniversalSearchHub_Extension.Services;
 
 internal sealed class ProviderService
 {
-    private const string DataFolderName = "CmdPal_UniversalSearchHub";
+    private const string DataFolderName = "CmdPalSearchHub";
     private const string ProvidersFileName = "providers.json";
 
     private static readonly Lazy<ProviderService> LazyInstance = new(() => new ProviderService());
@@ -143,13 +143,13 @@ internal sealed class ProviderService
 
         if (string.IsNullOrWhiteSpace(provider.Prefix))
         {
-            errorMessage = "Prefix is required.";
+            errorMessage = "Abbreviation is required.";
             return false;
         }
 
         if (provider.Prefix.Contains(' ', StringComparison.Ordinal))
         {
-            errorMessage = "Prefix cannot contain spaces.";
+            errorMessage = "Abbreviation cannot contain spaces.";
             return false;
         }
 
@@ -200,7 +200,7 @@ internal sealed class ProviderService
 
             if (p.Prefix.Equals(trimmed, StringComparison.OrdinalIgnoreCase))
             {
-                errorMessage = $"Another provider already uses prefix '{p.Prefix}'.";
+                errorMessage = $"Another provider already uses abbreviation '{p.Prefix}'.";
                 return false;
             }
         }
@@ -220,7 +220,8 @@ internal sealed class ProviderService
         {
             var fresh = new ProvidersDocument
             {
-                Version = 2,
+                Version = 3,
+                Hub = HubSettings.CreateDefault(),
                 Providers = BuiltInProviderCatalog.CreateFreshDocumentList(),
             };
             WriteDocument(fresh);
@@ -252,14 +253,16 @@ internal sealed class ProviderService
         {
             doc = new ProvidersDocument
             {
-                Version = 2,
+                Version = 3,
+                Hub = HubSettings.CreateDefault(),
                 Providers = BuiltInProviderCatalog.CreateFreshDocumentList(),
             };
             WriteDocument(doc);
             return doc;
         }
 
-        doc.Version = 2;
+        doc.Hub ??= HubSettings.CreateDefault();
+        doc.Version = 3;
         dirty |= NormalizeIds(doc.Providers);
         dirty |= MergeMissingBuiltIns(doc.Providers);
         if (dirty)
@@ -307,7 +310,7 @@ internal sealed class ProviderService
         }
 
         MergeMissingBuiltIns(list);
-        return new ProvidersDocument { Version = 2, Providers = list };
+        return new ProvidersDocument { Version = 3, Hub = HubSettings.CreateDefault(), Providers = list };
     }
 
     private static bool NormalizeIds(List<SearchProvider> list)
@@ -357,9 +360,67 @@ internal sealed class ProviderService
 
     private void WriteDocument(ProvidersDocument doc)
     {
-        doc.Version = 2;
+        doc.Hub ??= HubSettings.CreateDefault();
+        doc.Version = 3;
         string outJson = JsonSerializer.Serialize(doc, ProviderJsonContext.Default.ProvidersDocument);
         File.WriteAllText(_providersPath, outJson);
+    }
+
+    internal HubSettings LoadHubSettings()
+    {
+        lock (_sync)
+        {
+            ProvidersDocument doc = LoadOrMigrateDocument();
+            return HubSettings.Clone(doc.Hub ??= HubSettings.CreateDefault());
+        }
+    }
+
+    /// <summary>Writes hub fields from <paramref name="hub"/> into providers.json (single source of truth).</summary>
+    internal void ApplyHubSettings(HubSettings hub)
+    {
+        ArgumentNullException.ThrowIfNull(hub);
+        lock (_sync)
+        {
+            ProvidersDocument doc = LoadOrMigrateDocument();
+            doc.Hub ??= HubSettings.CreateDefault();
+            doc.Hub.EnableQuerySuggestions = hub.EnableQuerySuggestions;
+            doc.Hub.EnableResultPreview = hub.EnableResultPreview;
+            doc.Hub.YouTubeDataApiKey = hub.YouTubeDataApiKey.Trim();
+            doc.Hub.GoogleCustomSearchApiKey = hub.GoogleCustomSearchApiKey.Trim();
+            doc.Hub.GoogleCustomSearchEngineId = hub.GoogleCustomSearchEngineId.Trim();
+            WriteDocument(doc);
+        }
+
+        NotifyChanged();
+    }
+
+    internal void SetEnableQuerySuggestions(bool value)
+    {
+        HubSettings h = LoadHubSettings();
+        h.EnableQuerySuggestions = value;
+        ApplyHubSettings(h);
+    }
+
+    internal void SetEnableResultPreview(bool value)
+    {
+        HubSettings h = LoadHubSettings();
+        h.EnableResultPreview = value;
+        ApplyHubSettings(h);
+    }
+
+    internal bool TrySaveHubApiKeys(
+        string youTubeKey,
+        string googleKey,
+        string googleCx,
+        out string? errorMessage)
+    {
+        errorMessage = null;
+        HubSettings h = LoadHubSettings();
+        h.YouTubeDataApiKey = youTubeKey;
+        h.GoogleCustomSearchApiKey = googleKey;
+        h.GoogleCustomSearchEngineId = googleCx;
+        ApplyHubSettings(h);
+        return true;
     }
 
     private static void NotifyChanged() => ProvidersChanged?.Invoke(null, EventArgs.Empty);

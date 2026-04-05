@@ -3,7 +3,7 @@
 # Run: .\scripts\New-CmdPalSigningCertificate.ps1
 
 $ErrorActionPreference = 'Stop'
-$subject = 'CN=CmdPal Universal Search Hub CI'
+$subject = 'CN=Zunaid Farouque'
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..')
 $pfxPath = Join-Path $repoRoot 'CmdPal_CI_Signing.pfx'
 $cerPath = Join-Path $repoRoot 'CmdPal_CI_Public.cer'

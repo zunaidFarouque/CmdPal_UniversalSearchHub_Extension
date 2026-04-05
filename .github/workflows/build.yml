@@ -6,11 +6,8 @@
 # Note: `secrets` cannot be used in `if:` expressions; signing is decided inside the script via env.
 name: Build
 
+# Paused: was push + PR; run manually from Actions tab when you want a build.
 on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
   workflow_dispatch:
 
 env:

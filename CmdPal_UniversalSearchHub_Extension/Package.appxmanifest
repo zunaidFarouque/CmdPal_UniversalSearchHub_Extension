@@ -9,14 +9,14 @@
   IgnorableNamespaces="uap uap3 rescap">
 
   <Identity
-    Name="CmdPal-UniversalSearchHub-Extension"
-    Publisher="CN=CmdPal Universal Search Hub CI"
+    Name="ZunaidFarouque.CmdPalSearchHub"
+    Publisher="CN=Zunaid Farouque"
     Version="0.0.1.0" />
   <!-- Publisher must match the Subject of the PFX used to sign the MSIX (see docs/Signing.md). -->
 
   <Properties>
-    <DisplayName>CmdPal - Universal Search Hub</DisplayName>
-    <PublisherDisplayName>A Lone Developer</PublisherDisplayName>
+    <DisplayName>CmdPal Search Hub</DisplayName>
+    <PublisherDisplayName>Zunaid Farouque</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -33,9 +33,9 @@
     <Application Id="App"
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
-      <uap:VisualElements
-        DisplayName="CmdPal - Universal Search Hub"
-        Description="CmdPal - Universal Search Hub"
+        <uap:VisualElements
+        DisplayName="CmdPal Search Hub"
+        Description="Search the web from Windows Command Palette: one hub for many engines (Google, YouTube, GitHub, Bing, and more), optional short abbreviations like &quot;g &quot; or &quot;yt &quot;, and your own URL templates. Turn on query suggestions for Google and YouTube, and optional in-palette previews—configure YouTube Data API and Google Programmable Search keys for rich results, or open a normal search for everything else."
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
@@ -45,8 +45,8 @@
       <Extensions>
         <com:Extension Category="windows.comServer">
           <com:ComServer>
-            <com:ExeServer Executable="CmdPal_UniversalSearchHub_Extension.exe" Arguments="-RegisterProcessAsComServer" DisplayName="CmdPal - Universal Search Hub">
-              <com:Class Id="d65cba02-40e6-47c9-8e71-98b7c5a15887" DisplayName="CmdPal - Universal Search Hub" />
+            <com:ExeServer Executable="CmdPal_UniversalSearchHub_Extension.exe" Arguments="-RegisterProcessAsComServer" DisplayName="CmdPal Search Hub">
+              <com:Class Id="d65cba02-40e6-47c9-8e71-98b7c5a15887" DisplayName="CmdPal Search Hub" />
             </com:ExeServer>
           </com:ComServer>
         </com:Extension>
@@ -54,8 +54,8 @@
           <uap3:AppExtension Name="com.microsoft.commandpalette"
             Id="ID"
             PublicFolder="Public"
-            DisplayName="CmdPal - Universal Search Hub"
-            Description="CmdPal - Universal Search Hub">
+            DisplayName="CmdPal Search Hub"
+            Description="Multi-engine web search in Command Palette—built-in and custom engines, abbreviation + query, optional Google/YouTube suggestions, and in-palette previews with API keys.">
             <uap3:Properties>
               <CmdPalProvider>
                 <Activation>
@@ -63,6 +63,7 @@
                 </Activation>
                 <SupportedInterfaces>
                   <Commands/>
+                  <Settings/>
                 </SupportedInterfaces>
               </CmdPalProvider>
             </uap3:Properties>

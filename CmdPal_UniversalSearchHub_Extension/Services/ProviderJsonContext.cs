@@ -12,9 +12,11 @@ namespace CmdPal_UniversalSearchHub_Extension.Services;
     WriteIndented = true,
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     PropertyNameCaseInsensitive = true)]
+[JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(SearchProvider))]
 [JsonSerializable(typeof(List<SearchProvider>))]
 [JsonSerializable(typeof(SearchProvider[]))]
+[JsonSerializable(typeof(HubSettings))]
 [JsonSerializable(typeof(ProvidersDocument))]
 internal sealed partial class ProviderJsonContext : JsonSerializerContext
 {

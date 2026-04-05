@@ -37,12 +37,12 @@ internal sealed partial class ProviderDetailPage : ListPage
             new ListItem(new ToggleProviderCommand(this, _providerId))
             {
                 Title = p.Enabled ? "Disable" : "Enable",
-                Subtitle = $"Currently {state} · {kind} · prefix: {p.Prefix}",
+                Subtitle = $"Currently {state} · {kind} · abbreviation: {p.Prefix}",
                 Icon = new IconInfo("\uE7E8"),
             },
             new ListItem(new ProviderFormPage(_providerId))
             {
-                Title = "Edit name, prefix, or URL",
+                Title = "Edit name, abbreviation, or URL",
                 Subtitle = p.BaseUrl,
                 Icon = new IconInfo("\uE70F"),
             },
@@ -106,11 +106,7 @@ internal sealed partial class ProviderDetailPage : ListPage
             {
                 Title = "Remove provider?",
                 Description = "This custom provider will be removed from your configuration.",
-                PrimaryCommand = new RemoveProviderPrimaryCommand(_id)
-                {
-                    Name = "Remove",
-                    Result = CommandResult.GoBack(),
-                },
+                PrimaryCommand = new RemoveProviderPrimaryCommand(_id) { Name = "Remove" },
             };
             return CommandResult.Confirm(confirm);
         }

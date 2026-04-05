@@ -37,9 +37,14 @@ internal sealed partial class ProviderFormContent : FormContent
             ? null
             : ProviderService.Instance.GetById(editingProviderId);
 
-        string nameJson = JsonSerializer.Serialize(existing?.Name ?? "");
-        string prefixJson = JsonSerializer.Serialize(existing?.Prefix ?? "");
-        string baseUrlJson = JsonSerializer.Serialize(existing?.BaseUrl ?? "");
+        string nameJson = JsonSerializer.Serialize(existing?.Name ?? "", ProviderJsonContext.Default.String);
+        string prefixJson = JsonSerializer.Serialize(existing?.Prefix ?? "", ProviderJsonContext.Default.String);
+        string baseUrlJson = JsonSerializer.Serialize(existing?.BaseUrl ?? "", ProviderJsonContext.Default.String);
+        string hintJson = JsonSerializer.Serialize(
+            "URL template must include {0} once for the encoded search query.",
+            ProviderJsonContext.Default.String);
+
+        DataJson = "{}";
 
         TemplateJson =
             $$"""
@@ -50,31 +55,37 @@ internal sealed partial class ProviderFormContent : FormContent
                 "body": [
                     {
                         "type": "TextBlock",
-                        "text": "URL template must include {{0}} once for the encoded search query.",
+                        "text": {{hintJson}},
                         "wrap": true
                     },
                     {
                         "type": "Input.Text",
                         "id": "Name",
                         "label": "Display name",
+                        "style": "text",
                         "isRequired": true,
                         "errorMessage": "Name is required",
+                        "placeholder": "e.g. My Search",
                         "value": {{nameJson}}
                     },
                     {
                         "type": "Input.Text",
                         "id": "Prefix",
-                        "label": "Prefix (no spaces)",
+                        "label": "Abbreviation (no spaces)",
+                        "style": "text",
                         "isRequired": true,
-                        "errorMessage": "Prefix is required",
+                        "errorMessage": "Abbreviation is required",
+                        "placeholder": "e.g. g or wiki",
                         "value": {{prefixJson}}
                     },
                     {
                         "type": "Input.Text",
                         "id": "BaseUrl",
                         "label": "URL template",
+                        "style": "url",
                         "isRequired": true,
                         "errorMessage": "URL template is required",
+                        "placeholder": "https://example.com/search?q={0}",
                         "value": {{baseUrlJson}}
                     }
                 ],
@@ -86,6 +97,12 @@ internal sealed partial class ProviderFormContent : FormContent
                 ]
             }
             """;
+
+#if DEBUG
+        using (JsonDocument.Parse(TemplateJson))
+        {
+        }
+#endif
     }
 
     public override CommandResult SubmitForm(string payload)

@@ -6,7 +6,9 @@ namespace CmdPal_UniversalSearchHub_Extension.Models;
 
 internal sealed class ProvidersDocument
 {
-    public int Version { get; set; } = 2;
+    public int Version { get; set; } = 3;
+
+    public HubSettings Hub { get; set; } = HubSettings.CreateDefault();
 
     public List<SearchProvider> Providers { get; set; } = [];
 }
